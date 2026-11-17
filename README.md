@@ -56,7 +56,7 @@ Everything is stored **only on the device you use** (in the browser's IndexedDB)
 
 ## Why it's fast
 
-- No frameworks and no build step. The whole app is about 40 KB and loads instantly.
+- No frameworks and no build step. The whole app is about 17 KB when compressed and loads instantly.
 - A service worker caches the app, so it opens with no internet connection.
 - Photos are resized on your device to two sizes: a 320 px thumbnail for the board and a 1600 px version for full-screen viewing. Only the thumbnails are loaded while you scroll.
 - When something changes, the board redraws once per animation frame. Off-screen cards are skipped with `content-visibility`.
