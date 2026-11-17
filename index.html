@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Task Board</title>
+<meta name="description" content="Snap a photo of a job, write down what needs fixing, set a priority, a fix-by date and a reminder.">
+<meta name="theme-color" content="#f4f5f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0b0f14" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Tasks">
+<link rel="stylesheet" href="styles.css">
+<script src="app.js" defer></script>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-camera" viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="3.5"/></symbol>
+  <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></symbol>
+  <symbol id="i-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></symbol>
+</svg>
+
+<header class="top">
+  <h1 class="brand"><img src="icons/icon.svg" alt="" width="28" height="28">Task Board</h1>
+  <label class="search">
+    <svg class="i" aria-hidden="true"><use href="#i-search"/></svg>
+    <input id="q" type="search" placeholder="Search tasks" aria-label="Search tasks" autocomplete="off">
+  </label>
+  <button id="newBtn" class="btn primary" type="button"><svg class="i" aria-hidden="true"><use href="#i-plus"/></svg><span>New task</span></button>
+  <details class="menu" id="menu">
+    <summary class="icon-btn" aria-label="More options"><svg class="i" aria-hidden="true"><use href="#i-more"/></svg></summary>
+    <div class="menu-list">
+      <button type="button" data-menu="notify">Turn on notifications</button>
+      <button type="button" data-menu="ics">Add all reminders to calendar</button>
+      <button type="button" data-menu="csv">Export spreadsheet (CSV)</button>
+      <button type="button" data-menu="backup">Back up (photos included)</button>
+      <button type="button" data-menu="restore">Restore from backup</button>
+    </div>
+  </details>
+</header>
+
+<section class="stats" id="stats" aria-label="Summary">
+  <button type="button" class="stat overdue" data-stat="overdue"><b>0</b><span>Overdue</span></button>
+  <button type="button" class="stat today" data-stat="today"><b>0</b><span>Due today</span></button>
+  <button type="button" class="stat" data-stat="open"><b>0</b><span>Open</span></button>
+  <button type="button" class="stat" data-stat="done"><b>0</b><span>Done</span></button>
+</section>
+
+<nav class="toolbar" aria-label="Filters">
+  <div class="seg" role="radiogroup" aria-label="Show">
+    <button type="button" role="radio" data-view="open">Open</button>
+    <button type="button" role="radio" data-view="done">Done</button>
+    <button type="button" role="radio" data-view="all">All</button>
+  </div>
+  <span id="quickTag" class="quick-tag" hidden></span>
+  <label class="sort">Sort
+    <select id="sort">
+      <option value="due">Fix-by date</option>
+      <option value="new">Newest first</option>
+    </select>
+  </label>
+</nav>
+
+<div id="banner" class="banner" hidden></div>
+
+<main id="board" class="board">
+  <section class="col" data-p="high"><header><i></i><h2>High</h2><span class="count">0</span></header><div class="list"></div></section>
+  <section class="col" data-p="medium"><header><i></i><h2>Medium</h2><span class="count">0</span></header><div class="list"></div></section>
+  <section class="col" data-p="low"><header><i></i><h2>Low</h2><span class="count">0</span></header><div class="list"></div></section>
+  <section class="col" data-p="last"><header><i></i><h2>Last</h2><span class="count">0</span></header><div class="list"></div></section>
+</main>
+
+<button id="fab" class="fab" type="button" aria-label="Take a photo of a new task">
+  <svg class="i" aria-hidden="true"><use href="#i-camera"/></svg>
+</button>
+<input type="file" id="quickCam" class="vh" accept="image/*" capture="environment" tabindex="-1" aria-hidden="true">
+<input type="file" id="importFile" class="vh" accept="application/json,.json" tabindex="-1" aria-hidden="true">
+
+<dialog id="editor" aria-labelledby="edTitle">
+  <form id="form" novalidate>
+    <header class="ed-head">
+      <h2 id="edTitle">New task</h2>
+      <button type="button" class="icon-btn" data-close aria-label="Close"><svg class="i" aria-hidden="true"><use href="#i-x"/></svg></button>
+    </header>
+    <div class="ed-body">
+      <div class="photos" id="photos" hidden></div>
+      <div class="photo-actions">
+        <label class="btn">
+          <svg class="i" aria-hidden="true"><use href="#i-camera"/></svg>Take photo
+          <input type="file" id="camInput" class="vh" accept="image/*" capture="environment">
+        </label>
+        <label class="btn ghost">
+          <svg class="i" aria-hidden="true"><use href="#i-image"/></svg>From library
+          <input type="file" id="libInput" class="vh" accept="image/*" multiple>
+        </label>
+      </div>
+
+      <label class="field"><span>What needs to be done?</span>
+        <input name="title" required maxlength="200" autocomplete="off" enterkeyhint="next" placeholder="e.g. Replace broken light in hallway B">
+      </label>
+      <label class="field"><span>Notes</span>
+        <textarea name="notes" rows="3" placeholder="Location, parts needed, who reported it…"></textarea>
+      </label>
+
+      <fieldset class="field">
+        <legend>Priority</legend>
+        <div class="prio-pick">
+          <label data-p="high"><input type="radio" name="priority" value="high"><span>High</span></label>
+          <label data-p="medium"><input type="radio" name="priority" value="medium"><span>Medium</span></label>
+          <label data-p="low"><input type="radio" name="priority" value="low"><span>Low</span></label>
+          <label data-p="last"><input type="radio" name="priority" value="last"><span>Last</span></label>
+        </div>
+      </fieldset>
+
+      <div class="row2">
+        <label class="field"><span>Needs to be fixed by</span><input type="date" name="due"></label>
+        <label class="field"><span>Completed on</span><input type="date" name="doneDate"></label>
+      </div>
+
+      <label class="field"><span><svg class="i" aria-hidden="true"><use href="#i-bell"/></svg> Remind me</span>
+        <input type="datetime-local" name="remindAt">
+      </label>
+      <div class="chips" id="remindChips">
+        <button type="button" data-r="1h">In 1 hour</button>
+        <button type="button" data-r="tom">Tomorrow 8 AM</button>
+        <button type="button" data-r="due">Morning it's due</button>
+        <button type="button" data-r="clear">No reminder</button>
+      </div>
+      <p class="hint" id="remindHint"></p>
+    </div>
+    <footer class="ed-foot">
+      <button type="button" id="delBtn" class="btn ghost danger">Delete</button>
+      <button type="button" id="icsBtn" class="btn ghost"><svg class="i" aria-hidden="true"><use href="#i-cal"/></svg>Add to calendar</button>
+      <span class="spacer"></span>
+      <button type="button" id="doneTodayBtn" class="btn ghost"><svg class="i" aria-hidden="true"><use href="#i-check"/></svg>Done today</button>
+      <button type="submit" id="saveBtn" class="btn primary">Save</button>
+    </footer>
+  </form>
+</dialog>
+
+<dialog id="viewer" aria-label="Photo"><img alt="Task photo"></dialog>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
